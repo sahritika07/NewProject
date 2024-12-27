@@ -11,7 +11,7 @@ var checkUserAuth = async(req,res,next)=>{
        try {
         // get token from header
         token = authorization.split(' ')[1]
-        // console.log("Token-" , token)
+        // console.log("Token-" , token)                                             
         // console.log("Authorization-" , authorization)
 
         // verify token 

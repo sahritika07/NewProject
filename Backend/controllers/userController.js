@@ -70,6 +70,7 @@ class UserController{
         }
     }
 
+
     static changeUserPassword = async(req,res)=>{
         const {password, password_confirmation}=req.body;
         if(password && password_confirmation){
@@ -149,12 +150,12 @@ class UserController{
 
     static addUser = async (req, res) => {
         console.log("User details",req.body)
-        const { name, email, roles } = req.body; // Destructure data from request body
+        const { name, email, roles, addedBy } = req.body; // Destructure data from request body
     
     
         try {
           // Check if all required fields are provided
-          if (!name || !email || !roles) {
+          if (!name || !email || !roles ) {
             return res.status(400).send({
               status: 'failed',
               message: 'All fields (name, email, roles) are required',
@@ -176,7 +177,8 @@ class UserController{
           const newUser = new CrudModel({
             name,
             email,            
-            roles// Assuming roles are comma-separated
+            roles,
+            addedBy// Assuming roles are comma-separated
           });
           console.log("Error",newUser)
     
@@ -202,31 +204,46 @@ class UserController{
         
         // Function to get all users
         static getAllUsers = async (req, res) => {
+          console.log(req.query);
+          const { id, search } = req.query;
+          console.log(search);
           try {
-            // Fetch all users from the database
-            const users = await CrudModel.find(); 
-      
+            let users;
+            // Fetch users based on the search term
+            if (search?.length > 0) {
+              users = await CrudModel.find({
+                addedBy: id,
+                $or: [
+                  { name: { $regex: search, $options: "i" } }, // Match 'name' field (case-insensitive)
+                  { email: { $regex: search, $options: "i" } }, // Match 'email' field (case-insensitive)
+                ],
+              });
+            } else {
+              users = await CrudModel.find({ addedBy: id });
+            }
+        
             // If no users found, send a response
             if (!users.length) {
               return res.status(404).send({
-                status: 'failed',
-                message: 'No users found',
+                status: "failed",
+                message: "No users found",
               });
             }
-      
+        
             // Send users data as response
             res.status(200).send({
-              status: 'success',
+              status: "success",
               users: users,
             });
           } catch (error) {
             console.error(error);
             res.status(500).send({
-              status: 'failed',
-              message: 'Server error while fetching users',
+              status: "failed",
+              message: "Server error while fetching users",
             });
           }
         };
+        
 
 
 
@@ -292,13 +309,61 @@ class UserController{
       });
     }
   };
+
+
+  static getAllUsers = async (req, res) => {
+    console.log(req.query);
+    const { id, search, page = 2, limit = 5 } = req.query; // Defaults: page 1, 10 results per page
+    console.log(search);
+    
+    try {
+      let query = { addedBy: id };
+  
+      // Add search criteria if 'search' is provided
+      if (search?.length > 0) {
+        query.$or = [
+          { name: { $regex: search, $options: "i" } }, // Match 'name' field (case-insensitive)
+          { email: { $regex: search, $options: "i" } }, // Match 'email' field (case-insensitive)
+        ];
+      }
+  
+      // Calculate pagination values
+      const skip = (page - 1) * limit;
+  
+      // Fetch users with pagination
+      const users = await CrudModel.find(query)
+        .skip(skip)
+        .limit(parseInt(limit)); // Limit the number of results
+  
+      // Count total documents for the query
+      const totalUsers = await CrudModel.countDocuments(query);
+  
+      // If no users found, send a response
+      if (!users.length) {
+        return res.status(404).send({
+          status: "failed",
+          message: "No users found",
+        });
+      }
+  
+      // Send paginated response
+      res.status(200).send({
+        status: "success",
+        users: users,
+        totalUsers: totalUsers, // Total number of users
+        totalPages: Math.ceil(totalUsers / limit), // Total pages
+        currentPage: parseInt(page), // Current page
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({
+        status: "failed",
+        message: "Server error while fetching users",
+      });
+    }
+  };
+  
 }
-
-
-
-
-
-
 
 
 
