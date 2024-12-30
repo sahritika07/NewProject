@@ -311,175 +311,59 @@ class UserController{
   };
 
 
-  // static getAllUsers = async (req, res) => {
-  //   console.log(req.query);
-  //   const { id, search, page = 2, limit = 5 } = req.query; // Defaults: page 1, 10 results per page
-  //   console.log(search);
-    
-  //   try {
-  //     let query = { addedBy: id };
+ 
+  static getAllUsers = async (req, res) => {
+    console.log(req.query);
+    const { id, search, page = 1, limit = 5, sort = "asc" } = req.query; // Defaults: page 1, 5 results per page, ascending sort
+    console.log(search);
   
-  //     // Add search criteria if 'search' is provided
-  //     if (search?.length > 0) {
-  //       query.$or = [
-  //         { name: { $regex: search, $options: "i" } }, // Match 'name' field (case-insensitive)
-  //         { email: { $regex: search, $options: "i" } }, // Match 'email' field (case-insensitive)
-  //       ];
-  //     }
+    try {
+      let query = { addedBy: id };
   
-  //     // Calculate pagination values
-  //     const skip = (page - 1) * limit;
+      // Add search criteria if 'search' is provided
+      if (search?.length > 0) {
+        query.$or = [
+          { name: { $regex: search, $options: "i" } }, // Match 'name' field (case-insensitive)
+          { email: { $regex: search, $options: "i" } }, // Match 'email' field (case-insensitive)
+        ];
+      }
   
-  //     // Fetch users with pagination
-  //     const users = await CrudModel.find(query)
-  //       .skip(skip)
-  //       .limit(parseInt(limit)); // Limit the number of results
+      // Calculate pagination values
+      const skip = (page - 1) * limit;
   
-  //     // Count total documents for the query
-  //     const totalUsers = await CrudModel.countDocuments(query);
+      // Fetch users with sorting and pagination
+      const users = await CrudModel.find(query)
+        .sort({ name: sort === "asc" ? 1 : -1 }) // Sort by name: ascending (1) or descending (-1)
+        .skip(skip)
+        .limit(parseInt(limit));
   
-  //     // If no users found, send a response
-  //     if (!users.length) {
-  //       return res.status(404).send({
-  //         status: "failed",
-  //         message: "No users found",
-  //       });
-  //     }
+      // Count total documents for the query
+      const totalUsers = await CrudModel.countDocuments(query);
   
-  //     // Send paginated response
-  //     res.status(200).send({
-  //       status: "success",
-  //       users: users,
-  //       totalUsers: totalUsers, // Total number of users
-  //       totalPages: Math.ceil(totalUsers / limit), // Total pages
-  //       currentPage: parseInt(page), // Current page
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //     res.status(500).send({
-  //       status: "failed",
-  //       message: "Server error while fetching users",
-  //     });
-  //   }
-  // };
+      // If no users found, send a response
+      if (!users.length) {
+        return res.status(404).send({
+          status: "failed",
+          message: "No users found",
+        });
+      }
   
-
-  // static getAllUsers = async (req, res) => {
-  //   console.log(req.query);
-  //   const { id, search, page = 1, limit = 5, sortField, sortOrder } = req.query; // Defaults: page 1, 5 results per page
-    
-  //   try {
-  //     let query = { addedBy: id };
-  
-  //     // Add search criteria if 'search' is provided
-  //     if (search?.length > 0) {
-  //       query.$or = [
-  //         { name: { $regex: search, $options: "i" } }, // Match 'name' field (case-insensitive)
-  //         { email: { $regex: search, $options: "i" } }, // Match 'email' field (case-insensitive)
-  //       ];
-  //     }
-  
-  //     // Calculate pagination values
-  //     const skip = (page - 1) * limit;
-  
-  //     // Construct sorting object
-  //     let sort = {};
-  //     if (sortField) {
-  //       sort[sortField] = sortOrder === 'desc' ? -1 : 1; // Sort order: -1 for descending, 1 for ascending
-  //     }
-  
-  //     // Fetch users with pagination and sorting
-  //     const users = await CrudModel.find(query)
-  //       .sort(sort) // Apply sorting
-  //       .skip(skip)
-  //       .limit(parseInt(limit)); // Limit the number of results
-  
-  //     // Count total documents for the query
-  //     const totalUsers = await CrudModel.countDocuments(query);
-  
-  //     // If no users found, send a response
-  //     if (!users.length) {
-  //       return res.status(404).send({
-  //         status: "failed",
-  //         message: "No users found",
-  //       });
-  //     }
-  
-  //     // Send paginated response
-  //     res.status(200).send({
-  //       status: "success",
-  //       users: users,
-  //       totalUsers: totalUsers, // Total number of users
-  //       totalPages: Math.ceil(totalUsers / limit), // Total pages
-  //       currentPage: parseInt(page), // Current page
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //     res.status(500).send({
-  //       status: "failed",
-  //       message: "Server error while fetching users",
-  //     });
-  //   }
-  // };
-
-  // static getAllUsers = async (req, res) => {
-  //   console.log(req.query);
-  //   const { id, search, page = 1, limit = 5, sortField, sortOrder } = req.query; // Defaults: page 1, 5 results per page
-    
-  //   try {
-  //     let query = { addedBy: id };
-  
-  //     // Add search criteria if 'search' is provided
-  //     if (search?.length > 0) {
-  //       query.$or = [
-  //         { name: { $regex: search, $options: "i" } }, // Match 'name' field (case-insensitive)
-  //         { email: { $regex: search, $options: "i" } }, // Match 'email' field (case-insensitive)
-  //       ];
-  //     }
-  
-  //     // Calculate pagination values
-  //     const skip = (page - 1) * limit;
-  
-  //     // Construct sorting object
-  //     let sort = {};
-  //     if (sortField) {
-  //       sort[sortField] = sortOrder === 'desc' ? -1 : 1; // Sort order: -1 for descending, 1 for ascending
-  //     }
-  
-  //     // Fetch users with pagination and sorting
-  //     const users = await CrudModel.find(query)
-  //       .sort(sort) // Apply sorting
-  //       .skip(skip)
-  //       .limit(parseInt(limit)); // Limit the number of results
-  
-  //     // Count total documents for the query
-  //     const totalUsers = await CrudModel.countDocuments(query);
-  
-  //     // If no users found, send a response
-  //     if (!users.length) {
-  //       return res.status(404).send({
-  //         status: "failed",
-  //         message: "No users found",
-  //       });
-  //     }
-  
-  //     // Send paginated response
-  //     res.status(200).send({
-  //       status: "success",
-  //       users: users,
-  //       totalUsers: totalUsers, // Total number of users
-  //       totalPages: Math.ceil(totalUsers / limit), // Total pages
-  //       currentPage: parseInt(page), // Current page
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //     res.status(500).send({
-  //       status: "failed",
-  //       message: "Server error while fetching users",
-  //     });
-  //   }
-  // };
-    
+      // Send paginated and sorted response
+      res.status(200).send({
+        status: "success",
+        users: users,
+        totalUsers: totalUsers, // Total number of users
+        totalPages: Math.ceil(totalUsers / limit), // Total pages
+        currentPage: parseInt(page), // Current page
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({
+        status: "failed",
+        message: "Server error while fetching users",
+      });
+    }
+  };
 
   static getAllUsers = async (req, res) => {
     console.log(req.query);
@@ -533,6 +417,56 @@ class UserController{
       });
     }
   };
+
+
+  static updateUserWithImage = async (req, res) => {
+    try {
+        const { id } = req.query; // Get the user ID from query parameters
+        const { secureUrl } = req.body; // Get the secure URL from the request body
+        console.log(id)
+        console.log(secureUrl)
+
+        // Check if the user ID and secure URL are provided
+        if (!id || !secureUrl) {
+            return res.status(400).send({
+                status: 'failed',
+                message: 'User ID and secure URL are required',
+            });
+        }
+
+        // Find user by ID
+        const user = await UserModel.findById(id);
+
+        // If user doesn't exist
+        if (!user) {
+            return res.status(404).send({
+                status: 'failed',
+                message: 'User not found',
+            });
+        }
+
+        // Update the user with the secure URL
+        const updatedUser = await UserModel.findByIdAndUpdate(
+            id,
+            { profile: secureUrl }, // Assuming `profileImage` is the field to store the secure URL
+            { new: true } // Return the updated document
+        );
+
+        // Respond with success
+        res.status(200).send({
+            status: 'success',
+            message: 'User updated successfully with secure URL',
+            updatedUser,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({
+            status: 'failed',
+            message: 'Server error while updating user with secure URL',
+        });
+    }
+};
+
   
 }
 
