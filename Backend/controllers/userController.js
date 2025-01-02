@@ -3,6 +3,8 @@ import CrudModel from "../models/NewUser.js"
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import transporter from "../config/emailConfig.js"
+import { Parser as CsvParser } from 'json2csv';
+
 
 
 class UserController{
@@ -465,6 +467,40 @@ class UserController{
             message: 'Server error while updating user with secure URL',
         });
     }
+};
+
+static exportUser = async (req, res) => {
+  console.log("Users Data")
+  try {
+    let users = [];
+    const userData = await CrudModel.find({});
+
+    // Collecting user data into an array
+    userData.forEach((user) => {
+      const { name, email, roles } = user;
+      users.push({ name, email, roles });
+    });
+
+    // Fields to be included in the CSV
+    const csvFields = ['name', 'email', 'roles'];
+    const csvParser = new CsvParser({ fields: csvFields });
+    const csvData = csvParser.parse(users);
+
+    // Setting the headers for the response to download the CSV file
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", "attachment;filename=userData.csv");
+
+    // Sending the CSV data in the response
+    res.status(200).end(csvData);
+    
+    
+  } catch (error) {
+    res.status(400).send({
+      status: 400,
+      success: false,
+      msg: error.message,
+    });
+  }
 };
 
   

@@ -95,6 +95,9 @@ router.post('/usersurl', upload.single('image'), async (req, res) => {
 });
 
 
+router.get('/exportUser', UserController.exportUser);
+
+
 
 
 export default router;
